@@ -34,7 +34,6 @@ def generate_project(template_values_p: Dict[str, str]) -> Path:
     
     generated_repo_dir: Path = PROJECT_DIR / "sample" / cookie_cutter_config["default_context"]["repo_name"]
     
-    print(f"generated repo: {generated_repo_dir}")
     return generated_repo_dir
 
 def initialize_git_repo(repo_dir: Path):    
