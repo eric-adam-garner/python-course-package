@@ -7,15 +7,8 @@ on:
     branches:
       - main
   workflow_dispatch:
-    inputs:
-      publish_to_main:
-        description: Publish to PyPI if tests successful
-        required: true
-        type: boolean
-        default: false
 
 jobs:
-
   check-version-txt:
     runs-on: ubuntu-latest
     steps:
@@ -108,13 +101,11 @@ jobs:
       - name: Publish to TestPyPI
         run: |
           /bin/bash -x run.sh publish:test
-        env:
-          TEST_PYPI_TOKEN:{% raw %} ${{ secrets.TEST_PYPI_TOKEN }}{% endraw %}
+        env: TEST_PYPI_TOKEN:{% raw %} ${{ secrets.TEST_PYPI_TOKEN }}{% endraw %}
       - name: Publish to Prod PyPI
         run: |
           /bin/bash -x run.sh publish:prod
-        env:
-          PROD_PYPI_TOKEN:{% raw %} ${{ secrets.PROD_PYPI_TOKEN }}{% endraw %}
+        env: PROD_PYPI_TOKEN:{% raw %} ${{ secrets.PROD_PYPI_TOKEN }}{% endraw %}
       - name: Push tags
         run: |
           git push origin --tags

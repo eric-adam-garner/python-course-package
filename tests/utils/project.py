@@ -1,9 +1,8 @@
 import json
+import os
 import subprocess
 from copy import deepcopy
-from encodings.punycode import T
 from pathlib import Path
-from re import sub
 from typing import Dict
 
 from tests.consts import PROJECT_DIR
@@ -14,7 +13,7 @@ def generate_project(template_values_p: Dict[str, str], test_session_id: str) ->
 
     cookie_cutter_config = {"default_context": template_values}
 
-    cookie_cutter_config_path = PROJECT_DIR / "sample" / "cookiecutter-test-config-{test_session_id}.json"
+    cookie_cutter_config_path = PROJECT_DIR / "sample" / f"cookiecutter-test-config-{test_session_id}.json"
     cookie_cutter_config_path.write_text(json.dumps(cookie_cutter_config))
 
     cmd = [
@@ -30,6 +29,8 @@ def generate_project(template_values_p: Dict[str, str], test_session_id: str) ->
     subprocess.run(cmd, check=True)
 
     generated_repo_dir: Path = PROJECT_DIR / "sample" / cookie_cutter_config["default_context"]["repo_name"]
+
+    os.remove(cookie_cutter_config_path)
 
     return generated_repo_dir
 

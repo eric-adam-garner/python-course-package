@@ -12,7 +12,7 @@ from tests.utils.project import (
 )
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def project_dir() -> Generator[Path, None, None]:
     test_session_id = generate_test_session_id()
     template_values = {"repo_name": f"test-repo-{test_session_id}"}
