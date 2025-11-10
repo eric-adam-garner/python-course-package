@@ -14,7 +14,7 @@ from tests.utils.project import (
 )
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def project_dir() -> Generator[Path, None, None]:
     """Generate project repo."""
     test_session_id = generate_test_session_id()
