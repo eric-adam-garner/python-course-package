@@ -100,7 +100,7 @@ function help {
 #   IS_PUBLIC
 function create-repo-if-not-exists {
 
-    IS_PUBLIC=${IS_PUBLIC:-"false"}
+    IS_PUBLIC=${IS_PUBLIC:-false}
 
     if [[ "$IS_PUBLIC" == "true" ]]; then
         PUBLIC_OR_PRIVATE="public"
@@ -108,18 +108,93 @@ function create-repo-if-not-exists {
         PUBLIC_OR_PRIVATE="private"
     fi
 
-    gh repo view "$GITHUB_USERNAME/$REPO_NAME" > /dev/null 2>&1 && return 0
+    gh repo view "$GITHUB_USERNAME/$REPO_NAME" > /dev/null 2>&1 \
+        && echo "Repo already exists, exiting..." \
+        && return 0
+
+    echo "Repo does not exist, creating..."
     gh repo create "$GITHUB_USERNAME/$REPO_NAME" --"$PUBLIC_OR_PRIVATE"
+
+    gh repo clone "$GITHUB_USERNAME/$REPO_NAME"
+    
+    # Create main branch
+    git branch -M main || true
+
+    # Add readme 
+    echo "# $REPO_NAME" > "$REPO_NAME/README.md"
+
+    # Commit and push to main branch
+    cd "$REPO_NAME"
+    git add --all
+    git commit -m "feat: Add empty README.md"
+    git push origin main
+
 }
 
 function configure-repo {
     echo "..."
 }
 
-function open-pro-with-generated-project {
-    echo "..."
+# args:
+#   REPO_NAME
+#   PACKAGE_IMPORT_NAME
+#   GITHUB_USERNAME
+#   AUTHOR
+#   AUTHOR_EMAIL
+function open-pr-with-generated-project {
+
+    # debug
+    rm -rf outdir || true
+    rm -rf config || true
+    rm -rf "$REPO_NAME" || true
+
+    # Clone repository
+    gh repo clone "$GITHUB_USERNAME/$REPO_NAME"
+
+    # Delete local repository contents but keep .git file
+    mv "$REPO_NAME/.git" "./$REPO_NAME.git.back"
+    rm -rf "$REPO_NAME"
+    mkdir "$REPO_NAME"
+    mv "./$REPO_NAME.git.back" "$REPO_NAME/.git"
+
+    # Generate config file
+    mkdir config || true
+    CONFIG_FILE_PATH="./config/$REPO_NAME.yaml"
+    cat <<EOF > "$CONFIG_FILE_PATH"
+default_context:
+    repo_name: $REPO_NAME
+    package_import_name: $PACKAGE_IMPORT_NAME
+    author: $AUTHOR
+    author_email: $AUTHOR_EMAIL
+EOF
+    rm -rf "CONFIG_FILE_PATH"
+
+    # Generate project in outdir
+    mkdir outdir || true
+    cookiecutter ./ --output-dir=./outdir --no-input --config-file="$CONFIG_FILE_PATH"
+
+    # Move .git into project in outdir
+    mv "$REPO_NAME/.git" "./outdir/$REPO_NAME"
+    
+    # Checkout new feature branch
+    cd "./outdir/$REPO_NAME"
+    git checkout -b "feat/populating-from-template"
+
+    # Stage files for linting by pre-commit
+    git add --all
+    lint:ci || true
+    
+    # Restage the files modified by pre-commit
+    git add --all
+
+    # Commit changes to feature branch
+    git commit -m "feat: generate project from template"
+
+    # Push to remote repository on feature branch
+    git push origin "feat/populating-from-template"
 }
 
+# GITHUB_USERNAME=eric-adam-garner REPO_NAME=test-repo PACKAGE_IMPORT_NAME=test_repo AUTHOR="Eric Garner" AUTHOR_EMAIL="me@me.com" bash run.sh open-pr-with-generated-project
 
 TIMEFORMAT="Task completed in %3lR"
 time ${@:-help}
