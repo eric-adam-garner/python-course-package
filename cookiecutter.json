@@ -1,4 +1,6 @@
 {
     "repo_name": "repo-name",
-    "package_import_name": "example_package"
+    "package_import_name": "example_package",
+    "author": "Eric Adam Garner",
+    "author_email": "eric.adam.garner@gmail.com"
 }

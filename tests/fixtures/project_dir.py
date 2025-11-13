@@ -21,6 +21,8 @@ def project_dir() -> Generator[Path, None, None]:
     template_values = {
         "repo_name": f"test-repo-{test_session_id}",
         "package_import_name": f"package_import_{test_session_id}",
+        "author": "Test Bot",
+        "author_email": "Test.Bot@testbot.com",
     }
     generated_repo_dir: Path = generate_project(template_values, test_session_id)
     try:
