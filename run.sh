@@ -94,5 +94,32 @@ function help {
     compgen -A function | cat -n
 }
 
+# args:
+#   REPO_NAME
+#   GITHUB_USERNAME
+#   IS_PUBLIC
+function create-repo-if-not-exists {
+
+    IS_PUBLIC=${IS_PUBLIC:-"false"}
+
+    if [[ "$IS_PUBLIC" == "true" ]]; then
+        PUBLIC_OR_PRIVATE="public"
+    else
+        PUBLIC_OR_PRIVATE="private"
+    fi
+
+    gh repo view "$GITHUB_USERNAME/$REPO_NAME" > /dev/null 2>&1 && return 0
+    gh repo create "$GITHUB_USERNAME/$REPO_NAME" --"$PUBLIC_OR_PRIVATE"
+}
+
+function configure-repo {
+    echo "..."
+}
+
+function open-pro-with-generated-project {
+    echo "..."
+}
+
+
 TIMEFORMAT="Task completed in %3lR"
 time ${@:-help}
