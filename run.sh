@@ -116,11 +116,11 @@ function create-repo-if-not-exists {
     gh repo create "$GITHUB_USERNAME/$REPO_NAME" --"$PUBLIC_OR_PRIVATE"
 
     gh repo clone "$GITHUB_USERNAME/$REPO_NAME"
-    
+
     # Create main branch
     git branch -M main || true
 
-    # Add readme 
+    # Add readme
     echo "# $REPO_NAME" > "$REPO_NAME/README.md"
 
     # Commit and push to main branch
@@ -131,8 +131,21 @@ function create-repo-if-not-exists {
 
 }
 
+# args:
+#   TEST_PYPI_TOKEN, PROD_PYPI_TOKEN
+#   REPO_NAME
+#   GITHUB_USERNAME
 function configure-repo {
-    echo "..."
+    # Configure github actions secrets
+    gh secret set TEST_PYPI_TOKEN \
+        --body "$TEST_PYPI_TOKEN" \
+        --repo "$GITHUB_USERNAME/$REPO_NAME"
+
+    gh secret set PROD_PYPI_TOKEN \
+        --body "$PROD_PYPI_TOKEN" \
+        --repo "$GITHUB_USERNAME/$REPO_NAME"
+
+    # Proect main branch by enforcing passing build on feature branch before merge
 }
 
 # args:
@@ -175,7 +188,7 @@ EOF
 
     # Move .git into project in outdir
     mv "$REPO_NAME/.git" "./outdir/$REPO_NAME"
-    
+
     # Checkout new feature branch
     UUID=$(uuidgen)
     UNIQUE_BRANCH_NAME=feat/populating-from-template-${UUID:0:6}
@@ -186,7 +199,7 @@ EOF
     # Stage files for linting by pre-commit
     git add --all
     lint:ci || true
-    
+
     # Restage the files modified by pre-commit
     git add --all
 
@@ -205,7 +218,6 @@ EOF
         --repo "$GITHUB_USERNAME/$REPO_NAME"
 }
 
-# GITHUB_USERNAME=eric-adam-garner REPO_NAME=test-repo PACKAGE_IMPORT_NAME=test_repo AUTHOR="Eric Garner" AUTHOR_EMAIL="me@me.com" bash run.sh open-pr-with-generated-project
 
 TIMEFORMAT="Task completed in %3lR"
 time ${@:-help}
