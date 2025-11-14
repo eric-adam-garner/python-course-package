@@ -117,6 +117,9 @@ function create-repo-if-not-exists {
 
     gh repo clone "$GITHUB_USERNAME/$REPO_NAME"
 
+    git config --global user.email "eric.adam.garner@gmail.com"
+    git config --global user.name "Eric Adam Garner"
+
     # Create main branch
     git branch -M main || true
 
@@ -127,6 +130,9 @@ function create-repo-if-not-exists {
     cd "$REPO_NAME"
     git add --all
     git commit -m "feat: Add empty README.md"
+    if [[ -n "$GH_TOKEN" ]]; then
+        git remote set-url origin "https://$GITHUB_USERNAME:$GH_TOKEN@github.com/$GITHUB_USERNAME/$REPO_NAME"
+    fi
     git push origin main
 
 }
@@ -218,6 +224,9 @@ EOF
     git commit -m "feat: generate project from template"
 
     # Push to remote repository on feature branch
+    if [[ -n "$GH_TOKEN" ]]; then
+        git remote set-url origin "https://$GITHUB_USERNAME:$GH_TOKEN@github.com/$GITHUB_USERNAME/$REPO_NAME"
+    fi
     git push origin "$UNIQUE_BRANCH_NAME"
 
     # Open pull request into main branch
@@ -229,6 +238,13 @@ EOF
         --repo "$GITHUB_USERNAME/$REPO_NAME"
 }
 
+function create-sample-repo {
+    gh workflow run .github/workflows/create-or-update-repo.yaml \
+        -f repo_name=test-repoZ \
+        -f package_import_name=package \
+        -f is_public=false \
+        --ref main
+}
 
 TIMEFORMAT="Task completed in %3lR"
 time ${@:-help}
